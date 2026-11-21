@@ -1,0 +1,7 @@
+; ARCA Central: os endereços da rede (copie para central.ini, ao lado do ARCACentral.exe).
+; escuta:  o IP desta máquina, na rede que leva à máquina do WMP
+; cliente: o IP da máquina do WMP (a única atendida, além desta)
+; porta:   a porta HTTP (o ArcaCentral do ARCAIdentificar.exe.config aponta para ela)
+escuta=192.168.50.1
+cliente=192.168.50.2
+porta=8130

@@ -1,0 +1,182 @@
+﻿<Window x:Class="ARCA.Identificar.JanelaIdentificar"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ARCA — Identificar álbum"
+        Width="1240" Height="780" MinWidth="980" MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Canvas}">
+    <!-- "Localizar Informações sobre o Álbum", do jeito do ARCA. O que é texto
+         fixo, cor, margem e tamanho se ajusta aqui (ou no designer do VS 2010);
+         o que muda com os dados é preenchido pelo JanelaIdentificar.xaml.cs.
+         O painel "Escolhido" aparece aqui para dar para desenhá-lo; quem o
+         esconde até haver uma escolha é o código. -->
+    <DockPanel>
+
+        <!-- ===== Faixa de cima: a capa atual e o resumo do álbum ===== -->
+        <Border DockPanel.Dock="Top" Background="{StaticResource CabecalhoColuna}"
+                BorderBrush="{StaticResource Borda}" BorderThickness="0,0,0,1" Padding="14,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Border Width="84" Height="84" Margin="0,0,14,0" BorderThickness="1"
+                        BorderBrush="{StaticResource Borda}" Background="{StaticResource FundoLista}">
+                    <Grid>
+                        <TextBlock x:Name="m_lblSemCapa" Text="sem capa" Style="{StaticResource Fraco}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image x:Name="m_imgCapaAtual" Stretch="Uniform" />
+                    </Grid>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="Identificar álbum" FontSize="17" Foreground="{StaticResource Acento}" />
+                    <TextBlock x:Name="m_lblResumoFaixas" Style="{StaticResource Fraco}" Margin="0,4,0,0"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                               Text="N faixa(s) · 0:00   ·   pasta" />
+                    <TextBlock x:Name="m_lblTagsAtuais" Style="{StaticResource Fraco}" Margin="0,2,0,0"
+                               Text="Tags atuais: artista — álbum" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===== Área de comandos, embaixo ===== -->
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource BarraFerramentas}"
+                BorderBrush="{StaticResource Borda}" BorderThickness="0,1,0,0" Padding="14,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="m_lblStatus" VerticalAlignment="Center" TextWrapping="Wrap"
+                           Foreground="{StaticResource Texto}" Text="(mensagens de status)" />
+                <Button x:Name="m_btnAplicar" Grid.Column="1" Content="Aplicar às faixas" Padding="18,6" Margin="12,0,0,0" IsEnabled="False" Click="AoAplicar" />
+                <Button x:Name="m_btnFechar" Grid.Column="2" Content="Fechar" IsCancel="True" Padding="18,6" Margin="8,0,0,0" Click="AoFechar" />
+            </Grid>
+        </Border>
+
+        <!-- ===== Corpo ===== -->
+        <Grid Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="340" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Esquerda: as faixas e o registro -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+                    <RowDefinition Height="8" />
+                    <RowDefinition Height="130" />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Faixas — como estão no disco, e o que a identificação propõe" Style="{StaticResource Rotulo}" />
+
+                <DataGrid x:Name="m_grade" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False"
+                          CanUserDeleteRows="False" CanUserReorderColumns="False" SelectionMode="Single"
+                          HeadersVisibility="Column" GridLinesVisibility="None">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="✓" Width="30"
+                                                Binding="{Binding blnAplicar, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <DataGridTextColumn Header="Nº" Width="38" Binding="{Binding strNumero}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Arquivo" Width="1.2*" Binding="{Binding strArquivo}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Título atual" Width="1.2*" Binding="{Binding strTitulo}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Dur." Width="50" Binding="{Binding strDuracao}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="→ Nº" Width="44" Binding="{Binding strPosicaoNova}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="→ Título" Width="1.4*" Binding="{Binding strTituloNovo}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="→ Intérprete" Width="0.8*" Binding="{Binding strArtistaNovo}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Dif." Width="64" Binding="{Binding strDif}" IsReadOnly="True">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{Binding objCorDif}" />
+                                    <Setter Property="HorizontalAlignment" Value="Right" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Resultado" Width="1*" Binding="{Binding strResultado}" IsReadOnly="True" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <TextBox x:Name="m_txtLog" Grid.Row="3" IsReadOnly="True" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
+            </Grid>
+
+            <!-- Direita: o que você sabe, e o escolhido -->
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="O que você sabe" Style="{StaticResource Rotulo}" />
+
+                    <TextBlock Text="Artista" Style="{StaticResource Fraco}" Margin="0,6,0,2" />
+                    <TextBox x:Name="m_txtArtista" Padding="3" />
+                    <TextBlock Text="Álbum" Style="{StaticResource Fraco}" Margin="0,6,0,2" />
+                    <TextBox x:Name="m_txtAlbum" Padding="3" />
+                    <TextBlock Text="Basta um dos dois. Ou cole o link exato:" Style="{StaticResource Fraco}" Margin="0,2,0,0" />
+                    <TextBlock Text="Link do Discogs (/release/, /master/) ou do Apple Music" Style="{StaticResource Fraco}" Margin="0,6,0,2" />
+                    <TextBox x:Name="m_txtLink" Padding="3" />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button x:Name="m_btnIdentificar" Content="Identificar" IsDefault="True" Padding="18,6" Click="AoIdentificar" />
+                        <Button x:Name="m_btnCatalogar" Content="Catalogar à mão…" Padding="12,6" Margin="8,0,0,0" Click="AoCatalogar"
+                                ToolTip="Para o disco que nenhum catálogo conhece: o encarte na mão é a fonte.&#10;Títulos, capa e páginas do encarte pela G7000." />
+                    </StackPanel>
+                    <Button x:Name="m_btnPeloSom" Content="Pelo som (AcoustID)" Padding="12,4" Margin="0,8,0,0"
+                            HorizontalAlignment="Left" Click="AoIdentificarPeloSom"
+                            ToolTip="Para faixa sem nome nenhum (&quot;Faixa 1, Faixa 2…&quot;): o notebook ouve cada uma e o AcoustID diz que gravação é.&#10;Só a impressão digital do som sai do notebook, nunca o áudio. Uns 2 s por faixa." />
+                    <Button x:Name="m_btnDiscografia" Content="Pela discografia do artista…" Padding="12,4" Margin="0,8,0,0"
+                            HorizontalAlignment="Left" Click="AoDiscografia"
+                            ToolTip="Para álbum que é só o ano, ou faixas de vários discos misturadas:&#10;descobre o disco de cada faixa pelo título, pelo ano e pela duração." />
+
+                    <!-- Ferramentas que não identificam: valem para o álbum como ele está -->
+                    <TextBlock Text="Outras ferramentas" Style="{StaticResource Rotulo}" Margin="0,16,0,6" />
+                    <WrapPanel>
+                        <Button x:Name="m_btnCapaEncarte" Content="Só capa e encarte…" Padding="10,3" Margin="0,0,6,6" Click="AoCapaEncarte"
+                                ToolTip="Para álbum já identificado: troca a capa e acrescenta páginas do encarte, sem mexer nas tags." />
+                        <Button x:Name="m_btnConteudo" Content="Música, audiolivro ou fala…" Padding="10,3" Margin="0,0,6,6" Click="AoConteudo"
+                                ToolTip="Marca cada faixa como música, audiolivro ou fala (entrevista, humor, aula): o WMP separa os audiolivros da música." />
+                        <Button x:Name="m_btnAccurateRip" Content="Conferir no AccurateRip…" Padding="10,3" Margin="0,0,6,6" Click="AoAccurateRip"
+                                ToolTip="Para WMA ripado pelo WMP (com o índice do CD): confere se cada faixa é bit-perfect, comparando com quem ripou o mesmo CD." />
+                    </WrapPanel>
+
+                    <!-- O escolhido (o código esconde até haver uma escolha) -->
+                    <StackPanel x:Name="m_painelEscolhido" Margin="0,18,0,0">
+                        <TextBlock Text="Escolhido — confira antes de aplicar" Style="{StaticResource Rotulo}" Margin="0,0,0,4" />
+                        <TextBlock x:Name="m_lblFonte" Style="{StaticResource Fraco}" Text="Fonte · detalhe · N faixas" />
+
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Border Width="140" Height="140" BorderThickness="1"
+                                    BorderBrush="{StaticResource Borda}" Background="{StaticResource FundoLista}">
+                                <Image x:Name="m_imgCapaNova" Stretch="Uniform" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock x:Name="m_lblCapaNova" Style="{StaticResource Fraco}" Text="1000 × 1000 px · 120 KB" />
+                                <CheckBox x:Name="m_chkCapa" Content="Gravar esta capa" Margin="0,8,0,0" />
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <Button Content="Digitalizar…" Padding="8,2" Click="AoDigitalizarCapa"
+                                            ToolTip="Troca esta capa pela do encarte que você tem na mão, digitalizada na G7000 e cortada." />
+                                    <Button Content="De arquivo…" Padding="8,2" Margin="4,0,0,0" Click="AoCapaDeArquivo" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource Fraco}" Margin="0,6,0,0"
+                                           Text="Embutida em cada faixa (até 1000 px) e Folder.jpg / AlbumArtSmall.jpg ocultos na pasta, como o WMP faz." />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Artista do álbum" Style="{StaticResource Fraco}" Margin="0,6,0,2" />
+                        <TextBox x:Name="m_txtArtistaNovo" Padding="3" />
+                        <TextBlock Text="Álbum" Style="{StaticResource Fraco}" Margin="0,6,0,2" />
+                        <TextBox x:Name="m_txtAlbumNovo" Padding="3" />
+                        <TextBlock Text="Ano" Style="{StaticResource Fraco}" Margin="0,6,0,2" />
+                        <TextBox x:Name="m_txtAnoNovo" Padding="3" />
+                        <TextBlock Text="Gênero" Style="{StaticResource Fraco}" Margin="0,6,0,2" />
+                        <TextBox x:Name="m_txtGeneroNovo" Padding="3" />
+                        <TextBlock x:Name="m_lblGeneros" Style="{StaticResource Fraco}" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>

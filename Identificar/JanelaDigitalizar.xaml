@@ -1,0 +1,29 @@
+﻿<Window x:Class="ARCA.Identificar.JanelaDigitalizar"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Digitalizar na G7000"
+        Width="520" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource Canvas}">
+    <!-- O "diálogo do scanner": área, resolução e a espera. As áreas e as
+         resoluções vêm do JanelaDigitalizar.xaml.cs. -->
+    <StackPanel Margin="16">
+        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Texto}"
+                   Text="A G7000 está do outro lado do cabo, no notebook. Ponha o encarte com a face para baixo, encostado no canto de referência da mesa (o da seta), e feche a tampa." />
+
+        <TextBlock Text="Área" Style="{StaticResource Fraco}" Margin="0,12,0,3" />
+        <ComboBox x:Name="m_cmbTamanho" />
+
+        <TextBlock Text="Resolução" Style="{StaticResource Fraco}" Margin="0,12,0,3" />
+        <ComboBox x:Name="m_cmbDpi" Width="120" HorizontalAlignment="Left" />
+        <TextBlock Style="{StaticResource Fraco}" Margin="0,4,0,0"
+                   Text="300 dpi: uma capa de CD sai com uns 1500 px. Depois da digitalização vem o corte." />
+
+        <TextBlock x:Name="m_lblStatus" TextWrapping="Wrap" Margin="0,14,0,0" Foreground="{StaticResource Texto}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button x:Name="m_btnDigitalizar" Content="Digitalizar" IsDefault="True" Padding="18,6" Click="AoDigitalizar" />
+            <Button x:Name="m_btnCancelar" Content="Cancelar" IsCancel="True" Padding="18,6" Margin="8,0,0,0" Click="AoCancelar" />
+        </StackPanel>
+    </StackPanel>
+</Window>

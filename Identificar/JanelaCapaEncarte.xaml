@@ -1,0 +1,109 @@
+﻿<Window x:Class="ARCA.Identificar.JanelaCapaEncarte"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Capa e encarte"
+        Width="900" Height="640" MinWidth="700" MinHeight="460"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource Canvas}">
+    <!-- Capa e encarte de um álbum que já está identificado, sem identificar de novo
+         . As tags ficam como estão; só a capa e as
+         páginas mudam. A tira de páginas é o modelo "PaginaDoEncarte".
+         Comportamento no JanelaCapaEncarte.xaml.cs. -->
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="{StaticResource CabecalhoColuna}"
+                BorderBrush="{StaticResource Borda}" BorderThickness="0,0,0,1" Padding="14,10">
+            <StackPanel>
+                <TextBlock Text="Capa e encarte" FontSize="17" Foreground="{StaticResource Acento}" />
+                <TextBlock x:Name="m_lblAlbum" Style="{StaticResource Fraco}" Margin="0,3,0,0" Text="Artista — Álbum · N faixas · pasta" />
+            </StackPanel>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource BarraFerramentas}"
+                BorderBrush="{StaticResource Borda}" BorderThickness="0,1,0,0" Padding="14,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="m_lblStatus" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{StaticResource Texto}" Text="(status)" />
+                <Button x:Name="m_btnAplicar" Grid.Column="1" Content="Gravar no álbum" Padding="18,6" Margin="12,0,0,0" IsEnabled="False" Click="AoAplicar" />
+                <Button x:Name="m_btnFechar" Grid.Column="2" Content="Fechar" IsCancel="True" Padding="18,6" Margin="8,0,0,0" Click="AoFechar" />
+            </Grid>
+        </Border>
+
+        <Grid Margin="14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230" />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <!-- Capa: a atual e a nova -->
+            <StackPanel>
+                <TextBlock Text="Capa" Style="{StaticResource Rotulo}" />
+                <Border Width="210" Height="210" HorizontalAlignment="Left" Background="{StaticResource PainelLateral}"
+                        BorderBrush="{StaticResource Borda}" BorderThickness="1">
+                    <Grid>
+                        <TextBlock x:Name="m_lblSemCapa" Text="sem capa" Style="{StaticResource Fraco}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image x:Name="m_imgCapa" Stretch="Uniform" />
+                    </Grid>
+                </Border>
+                <TextBlock x:Name="m_lblCapa" Style="{StaticResource Fraco}" Margin="0,4,0,0" Text="a capa que o álbum já tem" />
+                <Button Content="Digitalizar capa…" Padding="0,4" Margin="0,8,20,0" Click="AoDigitalizarCapa"
+                        ToolTip="Abre o scanner (G7000, pelo notebook). Depois da digitalização, você recorta a capa." />
+                <Button Content="Capa de arquivo…" Padding="0,4" Margin="0,4,20,0" Click="AoCapaDeArquivo" />
+            </StackPanel>
+
+            <!-- Encarte: o que já está em Artwork e as páginas novas -->
+            <DockPanel Grid.Column="2">
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <Button DockPanel.Dock="Right" Content="De arquivo…" Padding="10,3" Margin="6,0,0,0" Click="AoPaginaDeArquivo" />
+                    <Button DockPanel.Dock="Right" Content="Digitalizar página…" Padding="10,3" Click="AoDigitalizarPagina"
+                            ToolTip="Uma página por vez, na ordem do livreto. Cada uma passa pelo corte." />
+                    <TextBlock x:Name="m_lblEncarte" Text="Páginas novas do encarte" Style="{StaticResource Rotulo}" VerticalAlignment="Center" Margin="0" />
+                </DockPanel>
+                <TextBlock x:Name="m_lblJaTem" DockPanel.Dock="Top" Style="{StaticResource Fraco}" Margin="0,0,0,8"
+                           Text="Na pasta Artwork: nada ainda." />
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Height="160" VerticalAlignment="Top">
+                    <Grid>
+                        <TextBlock x:Name="m_lblSemPaginas" Style="{StaticResource Fraco}" VerticalAlignment="Center" MaxWidth="460" HorizontalAlignment="Left"
+                                   Text="Nenhuma página nova. As páginas vão para a pasta Artwork do álbum (encarte_NN.jpg), continuando a numeração." />
+                        <ItemsControl x:Name="m_lstPaginas">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <!-- PaginaDoEncarte -->
+                                <DataTemplate>
+                                    <StackPanel Width="84" Margin="0,0,8,0">
+                                        <Border Width="84" Height="84" Background="{StaticResource PainelLateral}"
+                                                BorderBrush="{StaticResource Borda}" BorderThickness="1" ToolTip="{Binding strDica}">
+                                            <Image Source="{Binding objImagem}" Stretch="Uniform" />
+                                        </Border>
+                                        <Grid Margin="0,3,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <Button Content="↺" FontFamily="Segoe UI Symbol" FontSize="12" Padding="0" Margin="0,0,2,0" ToolTip="Girar 90° para a esquerda" Click="AoGirarEsquerda" />
+                                            <Button Grid.Column="1" Content="↻" FontFamily="Segoe UI Symbol" FontSize="12" Padding="0" Margin="2,0,0,0" ToolTip="Girar 90° para a direita" Click="AoGirarDireita" />
+                                            <Button Grid.Row="1" Content="Dividir" FontSize="10" Padding="0,1" Margin="0,3,2,0" ToolTip="Dividir em duas páginas por uma linha vertical" Click="AoDividir" />
+                                            <Button Grid.Row="1" Grid.Column="1" Content="Tirar" FontSize="10" Padding="0,1" Margin="2,3,0,0" ToolTip="Tirar esta página" Click="AoTirarPagina" />
+                                        </Grid>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </ScrollViewer>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</Window>

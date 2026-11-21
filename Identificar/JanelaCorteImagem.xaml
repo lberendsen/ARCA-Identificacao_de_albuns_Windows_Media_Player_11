@@ -1,0 +1,67 @@
+﻿<Window x:Class="ARCA.Identificar.JanelaCorteImagem"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cortar imagem"
+        Width="900" Height="760" MinWidth="600" MinHeight="500"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource Canvas}">
+    <!-- Corte de imagem (capa ou página do encarte). As peças da moldura
+         (véu, contorno, alças) estão aqui para ajustar cor e tamanho; a
+         posição delas é calculada pelo JanelaCorteImagem.xaml.cs. -->
+    <DockPanel>
+
+        <!-- ===== Barra de cima: tamanho, resolução, quadrado ===== -->
+        <Border DockPanel.Dock="Top" Background="{StaticResource BarraFerramentas}"
+                BorderBrush="{StaticResource Borda}" BorderThickness="0,0,0,1" Padding="14,8">
+            <!-- WrapPanel: em janela estreita a barra não cabe numa linha. -->
+            <WrapPanel>
+                <TextBlock Text="Tamanho" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{StaticResource Texto}" />
+                <ComboBox x:Name="m_cmbTamanho" Width="190" VerticalAlignment="Center" Margin="0,0,10,0"
+                          ToolTip="Moldura do tamanho real do encarte. Ela só se move: arraste, clique onde quer, ou use as setas." />
+                <TextBox x:Name="m_txtDpi" Width="44" VerticalAlignment="Center" MaxLength="4"
+                         ToolTip="Resolução do scan, que transforma centímetros em pixels." />
+                <TextBlock x:Name="m_lblDpiOrigem" Text="dpi" Style="{StaticResource Fraco}" VerticalAlignment="Center" Margin="4,0,14,0" />
+                <CheckBox x:Name="m_chkQuadrado" Content="Quadrado" VerticalAlignment="Center" Margin="0,0,14,0"
+                          ToolTip="Capa de CD é quadrada. Desligue para cortar outros formatos." />
+                <!-- Gira a moldura, não a imagem: o encarte aberto posto em pé vira uma moldura de 12 x 24. -->
+                <Button Content="Girar moldura 90°" Padding="10,3" Margin="0,0,8,0" Click="AoGirarMoldura"
+                        ToolTip="Troca largura e altura da moldura, em volta do centro dela. A imagem não gira." />
+                <Button Content="Selecionar tudo" Padding="10,3" Margin="0,0,14,0" Click="AoSelecionarTudo" />
+                <TextBlock x:Name="m_lblTamanho" Style="{StaticResource Fraco}" VerticalAlignment="Center" Text="Corte: 0 x 0 px" />
+            </WrapPanel>
+        </Border>
+
+        <!-- ===== Embaixo: instrução e botões ===== -->
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource BarraFerramentas}"
+                BorderBrush="{StaticResource Borda}" BorderThickness="0,1,0,0" Padding="14,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource Fraco}" VerticalAlignment="Center"
+                           Text="Arraste por dentro para mover, pelos cantos para redimensionar, ou fora para desenhar um novo corte. Com tamanho fixo, a moldura só se move: arraste ou clique onde ela deve ficar. Setas: 1 px; com Shift, 10 px." />
+                <Button Grid.Column="1" Content="Cancelar" IsCancel="True" Padding="18,6" Margin="12,0,0,0" Click="AoCancelar" />
+                <Button Grid.Column="2" Content="Cortar e usar" IsDefault="True" Padding="18,6" Margin="8,0,0,0" Click="AoUsar" />
+            </Grid>
+        </Border>
+
+        <!-- ===== O palco: a imagem e a moldura de corte ===== -->
+        <Border x:Name="m_areaPalco" Background="{StaticResource ChapaFunda}" BorderBrush="{StaticResource Borda}"
+                BorderThickness="1" Margin="14" SizeChanged="AoRedimensionarPalco">
+            <Canvas x:Name="m_palco" Background="Transparent" ClipToBounds="True" Cursor="Cross"
+                    MouseLeftButtonDown="AoApertar" MouseMove="AoMover" MouseLeftButtonUp="AoSoltar" LostMouseCapture="AoPerderMouse">
+                <Image x:Name="m_imgVista" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" />
+                <!-- Véu: escurece o que fica fora do corte. -->
+                <Path x:Name="m_veu" Fill="#99000000" IsHitTestVisible="False" />
+                <!-- Contorno do corte e as quatro alças dos cantos. -->
+                <Rectangle x:Name="m_moldura" Stroke="{StaticResource AcentoVivo}" StrokeThickness="2" IsHitTestVisible="False" />
+                <Rectangle x:Name="m_alca0" Width="10" Height="10" Fill="{StaticResource AcentoVivo}" Stroke="White" StrokeThickness="1" IsHitTestVisible="False" />
+                <Rectangle x:Name="m_alca1" Width="10" Height="10" Fill="{StaticResource AcentoVivo}" Stroke="White" StrokeThickness="1" IsHitTestVisible="False" />
+                <Rectangle x:Name="m_alca2" Width="10" Height="10" Fill="{StaticResource AcentoVivo}" Stroke="White" StrokeThickness="1" IsHitTestVisible="False" />
+                <Rectangle x:Name="m_alca3" Width="10" Height="10" Fill="{StaticResource AcentoVivo}" Stroke="White" StrokeThickness="1" IsHitTestVisible="False" />
+            </Canvas>
+        </Border>
+    </DockPanel>
+</Window>

@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    ARCA Identificar: o projeto do Visual Studio 2010.
+    Todas as janelas da identificação são XAML e se ajustam no designer, com o
+    tema (Tema.xaml). Os clientes de busca e o modelo, divididos com o ARCA Central,
+    ficam em ..\Comum\ (pasta "Comum" no Gerenciador de Soluções), e o Protocolo
+    em ..\Central\: entram por link.
+    A saída vai para ..\bin\, ao lado da ARCAPonte.dll, que é de onde o WMP abre.
+  -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{7C1D4E2A-5B3F-4A61-9D2E-A0CA0000D001}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>ARCA.Identificar</RootNamespace>
+    <AssemblyName>ARCAIdentificar</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <FileAlignment>512</FileAlignment>
+    <StartupObject>ARCA.Identificar.Programa</StartupObject>
+    <CodePage>65001</CodePage>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <IntermediateOutputPath>obj\Debug\</IntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <IntermediateOutputPath>obj\Release\</IntermediateOutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="taglib-sharp">
+      <HintPath>..\Bibliotecas\taglib-sharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <!-- ===== Tema e janelas (XAML) ===== -->
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Tema.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="JanelaIdentificar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaIdentificar.xaml.cs">
+      <DependentUpon>JanelaIdentificar.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaDiscografia.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaDiscografia.xaml.cs">
+      <DependentUpon>JanelaDiscografia.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaDigitalizar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaDigitalizar.xaml.cs">
+      <DependentUpon>JanelaDigitalizar.xaml</DependentUpon>
+    </Compile>
+    <Page Include="PainelFonte.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="PainelFonte.xaml.cs">
+      <DependentUpon>PainelFonte.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaEscolhaFonte.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaEscolhaFonte.xaml.cs">
+      <DependentUpon>JanelaEscolhaFonte.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaEditorFaixas.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaEditorFaixas.xaml.cs">
+      <DependentUpon>JanelaEditorFaixas.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaCorteImagem.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaCorteImagem.xaml.cs">
+      <DependentUpon>JanelaCorteImagem.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaDivisaoImagem.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaDivisaoImagem.xaml.cs">
+      <DependentUpon>JanelaDivisaoImagem.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaSepararDesconhecido.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaSepararDesconhecido.xaml.cs">
+      <DependentUpon>JanelaSepararDesconhecido.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaConferenciaAlbum.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaConferenciaAlbum.xaml.cs">
+      <DependentUpon>JanelaConferenciaAlbum.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaConteudoFaixas.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaConteudoFaixas.xaml.cs">
+      <DependentUpon>JanelaConteudoFaixas.xaml</DependentUpon>
+    </Compile>
+    <Page Include="JanelaCapaEncarte.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaCapaEncarte.xaml.cs">
+      <DependentUpon>JanelaCapaEncarte.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <!-- ===== Lógica ===== -->
+  <ItemGroup>
+    <Compile Include="Programa.cs" />
+    <Compile Include="FaixaMp3.cs" />
+    <Compile Include="GravadorMp3.cs" />
+    <Compile Include="NumeroAsf.cs" />
+    <Compile Include="ClienteCentral.cs" />
+    <Compile Include="CasadorDiscografia.cs" />
+    <Compile Include="OrganizadorDiscografia.cs" />
+    <Compile Include="ScannerCentral.cs" />
+    <Compile Include="ImagensDoEncarte.cs" />
+    <Compile Include="CasadorFaixasSoltas.cs" />
+    <Compile Include="SeparadorDesconhecido.cs" />
+    <Compile Include="ConferenciaAccurateRip.cs" />
+    <None Include="ARCAIdentificar.exe.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <!-- ===== Divididos com o ARCA Central, por link ===== -->
+  <ItemGroup>
+    <Compile Include="..\Central\Protocolo.cs">
+      <Link>Central\Protocolo.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\CandidatoIdentificacao.cs">
+      <Link>Comum\CandidatoIdentificacao.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\DiscogsClient.cs">
+      <Link>Comum\DiscogsClient.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\ItunesResolver.cs">
+      <Link>Comum\ItunesResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\ExternalMetadataClient.cs">
+      <Link>Comum\ExternalMetadataClient.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\GnuDbResolver.cs">
+      <Link>Comum\GnuDbResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\AccurateRip.cs">
+      <Link>Comum\AccurateRip.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\Formato.cs">
+      <Link>Comum\Formato.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\FontesDisco.cs">
+      <Link>Comum\FontesDisco.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\LeitorAudio.cs">
+      <Link>Comum\LeitorAudio.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\OffsetDrive.cs">
+      <Link>Comum\OffsetDrive.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\ClasseMidia.cs">
+      <Link>Comum\ClasseMidia.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\EditorAsf.cs">
+      <Link>Comum\EditorAsf.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

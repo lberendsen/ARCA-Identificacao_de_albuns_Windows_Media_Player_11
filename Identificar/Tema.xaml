@@ -1,0 +1,127 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ===================================================================
+         TEMA DOS PLUG-INS DO WMP 11 — claro, nativo do Vista.
+
+         Aberto de dentro do WMP 11, o ARCA Identificar tem de parecer parte
+         dele, e as janelas do próprio WMP 11 (Opções, Editor de Marcas
+         Avançado, Localizar Informações sobre o Álbum) são diálogos nativos do
+         Vista: fundo branco, área de comandos cinza embaixo, títulos no azul
+         do Vista e os controles do tema Aero (Lorenzo, 20/11/2026).
+
+         O tema entra pelo App.xaml e vai compilado dentro do .exe (abre no
+         designer do VS 2010). As janelas (Catalogar à mão, corte, divisão,
+         escolha da fonte) pedem as cores pelas CHAVES ("Canvas", "Texto",
+         "Fraco"…), e um tema escuro com as mesmas chaves serviria sem mudar
+         nenhuma janela.
+
+         Regra: nenhum estilo de controle aqui. Botão, caixa de marcar, lista
+         suspensa, barra de rolagem e cabeçalho de grade ficam com o desenho
+         do Aero, que o WPF escolhe sozinho no Vista. As cores do sistema
+         também não são redefinidas. Só a célula selecionada da grade ganhou
+         estilo (azul-claro, como a seleção do Explorer e do WMP 11, em vez
+         do azul cheio com texto branco, que apagava as cores de Dif./Confiança).
+         =================================================================== -->
+
+    <!-- ===== Áreas ====================================================== -->
+    <SolidColorBrush x:Key="Canvas"           Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="FundoLista"       Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PainelLateral"    Color="#FFF5F8FC" />
+    <SolidColorBrush x:Key="BarraTrilha"      Color="#FFF0F0F0" />
+    <!-- A área de comandos dos diálogos do Vista (onde ficam OK/Cancelar). -->
+    <SolidColorBrush x:Key="BarraFerramentas" Color="#FFF0F0F0" />
+    <!-- Faixa de cima: o degradê branco → azul-gelo do painel do WMP 11. -->
+    <LinearGradientBrush x:Key="CabecalhoColuna" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFFFFFFF" Offset="0" />
+        <GradientStop Color="#FFE8EFF8" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="LinhaCabecalho"   Color="#FFE3E8EE" />
+    <SolidColorBrush x:Key="AbaTarefa"        Color="#FFF0F0F0" />
+    <SolidColorBrush x:Key="Borda"            Color="#FFC5CFDA" />
+    <SolidColorBrush x:Key="LinhaAlternada"   Color="#FFF5F8FC" />
+
+    <!-- ===== Tinta ====================================================== -->
+    <SolidColorBrush x:Key="Texto"            Color="#FF1E1E1E" />
+    <SolidColorBrush x:Key="TextoFraco"       Color="#FF5F6B78" />
+    <!-- O azul das instruções principais do Vista (#003399). -->
+    <SolidColorBrush x:Key="Acento"           Color="#FF003399" />
+    <!-- Marcação sobre imagem (corte, divisão): o azul de seleção do Aero. -->
+    <SolidColorBrush x:Key="AcentoVivo"       Color="#FF3399FF" />
+    <SolidColorBrush x:Key="Alarme"           Color="#FFCC0000" />
+
+    <SolidColorBrush x:Key="ProgressoTocado"   Color="#FF3399FF" />
+    <SolidColorBrush x:Key="ProgressoRestante" Color="#FFD5DDE6" />
+    <SolidColorBrush x:Key="Rodape"            Color="#FFF0F0F0" />
+    <SolidColorBrush x:Key="RodapeBorda"       Color="#FFDFDFDF" />
+    <SolidColorBrush x:Key="OrbePlay"          Color="#FF3399FF" />
+
+    <!-- Fundo de onde a imagem é cortada/dividida: cinza-claro neutro, que
+         não puxa a cor da foto (o Visualizador de Fotos do Vista faz igual). -->
+    <SolidColorBrush x:Key="Chapa"            Color="#FFF0F0F0" />
+    <SolidColorBrush x:Key="ChapaFunda"       Color="#FFE4E7EB" />
+    <SolidColorBrush x:Key="ChapaBorda"       Color="#FFC5CFDA" />
+    <SolidColorBrush x:Key="ChapaTexto"       Color="#FF1E1E1E" />
+    <SolidColorBrush x:Key="ChapaRotulo"      Color="#FF5F6B78" />
+    <SolidColorBrush x:Key="ChapaFraco"       Color="#FF8A949E" />
+    <SolidColorBrush x:Key="Fosforo"          Color="#FF003399" />
+
+    <FontFamily x:Key="Fonte">Segoe UI</FontFamily>
+    <FontFamily x:Key="FonteMono">Consolas, Courier New</FontFamily>
+
+    <!-- ===== Texto ====================================================== -->
+    <Style x:Key="Titulo" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Fonte}" />
+        <Setter Property="Foreground" Value="{StaticResource Acento}" />
+        <Setter Property="FontSize" Value="15" />
+    </Style>
+
+    <Style x:Key="Fraco" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Fonte}" />
+        <Setter Property="Foreground" Value="{StaticResource TextoFraco}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- Título de seção, como os grupos dos diálogos do Vista: azul, sem caixa-alta. -->
+    <Style x:Key="Rotulo" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Fonte}" />
+        <Setter Property="Foreground" Value="{StaticResource Acento}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+
+    <!-- ===== Grade ======================================================
+         Só fundo e borda; o cabeçalho é o do Aero. -->
+    <Style TargetType="DataGrid">
+        <Setter Property="FontFamily" Value="{StaticResource Fonte}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource Texto}" />
+        <Setter Property="Background" Value="{StaticResource FundoLista}" />
+        <Setter Property="BorderBrush" Value="#FF828790" />
+        <Setter Property="RowBackground" Value="White" />
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource LinhaCabecalho}" />
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource LinhaCabecalho}" />
+    </Style>
+
+    <Style TargetType="DataGridCell">
+        <Setter Property="BorderThickness" Value="0" />
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#FFD5E6FA" />
+                <Setter Property="BorderBrush" Value="#FFD5E6FA" />
+                <Setter Property="Foreground" Value="{StaticResource Texto}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Caixa de edição dentro da célula (o editor de faixas pede por nome). -->
+    <Style x:Key="EdicaoCelula" TargetType="TextBox">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource Texto}" />
+    </Style>
+
+</ResourceDictionary>

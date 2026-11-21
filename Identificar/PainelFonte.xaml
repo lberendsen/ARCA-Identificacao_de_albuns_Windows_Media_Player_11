@@ -1,0 +1,102 @@
+﻿<UserControl x:Class="ARCA.Identificar.PainelFonte"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="Auto" Height="Auto">
+    <!-- Uma coluna da escolha da fonte (Apple Music ou Discogs). A JanelaEscolhaFonte
+         usa duas destas: o que se ajusta aqui vale para as duas.
+         O que é dado (capa, nomes, faixas, cores de "confere"/"não confere") vem
+         do PainelFonte.xaml.cs. A lista de faixas é desenhada pelo modelo
+         "LinhaDaFaixa", logo abaixo. -->
+    <Border Background="{StaticResource FundoLista}" BorderBrush="{StaticResource Borda}" BorderThickness="1" Padding="12">
+        <DockPanel>
+            <TextBlock x:Name="m_lblFonte" DockPanel.Dock="Top" Text="Apple Music" Style="{StaticResource Rotulo}" Margin="0,0,0,8" />
+
+            <!-- Quando a fonte não achou nada, só isto aparece. -->
+            <TextBlock x:Name="m_lblNada" DockPanel.Dock="Top" Text="Nada encontrado." Style="{StaticResource Fraco}"
+                       HorizontalAlignment="Center" Margin="0,40,0,0" Visibility="Collapsed" />
+
+            <Button x:Name="m_btnUsar" DockPanel.Dock="Bottom" Content="Usar os dados do Apple Music"
+                    Padding="0,8" Margin="0,10,0,0" Click="AoUsar" />
+
+            <!-- Identidade: capa à esquerda; artista, álbum, ano, detalhe e a conferência à direita. -->
+            <Grid x:Name="m_gradeIdentidade" DockPanel.Dock="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Border Width="160" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Background="{StaticResource PainelLateral}" BorderBrush="{StaticResource Borda}" BorderThickness="1">
+                    <Grid>
+                        <TextBlock x:Name="m_lblSemCapa" Text="sem capa" Style="{StaticResource Fraco}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image x:Name="m_imgCapa" Stretch="UniformToFill" />
+                    </Grid>
+                </Border>
+                <StackPanel Grid.Column="1">
+                    <TextBlock x:Name="m_lblArtista" Text="Artista" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{StaticResource Texto}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="m_lblAlbum" Text="Álbum" FontSize="15"
+                               Foreground="{StaticResource Texto}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="m_lblAnoGenero" Text="1968 · Pop" FontSize="12"
+                               Foreground="{StaticResource TextoFraco}" TextTrimming="CharacterEllipsis" />
+                    <!-- Quebra em vez de cortar: gravadora/catálogo é o que separa prensagens. -->
+                    <TextBlock x:Name="m_lblDetalhe" Text="Gravadora · catálogo" FontSize="12"
+                               Foreground="{StaticResource TextoFraco}" TextWrapping="Wrap" />
+                    <!-- A conferência que mais pesa: a contagem de faixas (a cor muda pelo código). -->
+                    <TextBlock x:Name="m_lblContagem" Text="12 faixas — confere com o disco" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{StaticResource Texto}" Margin="0,8,0,0" TextWrapping="Wrap" />
+                    <TextBlock x:Name="m_lblTotal" Text="Total 34:10 (disco 34:12)" FontSize="12"
+                               Foreground="{StaticResource TextoFraco}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- As faixas. Margem à direita: a barra de rolagem não pode cobrir a coluna da diferença. -->
+            <ScrollViewer x:Name="m_rolagemFaixas" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="0,0,10,0" Grid.IsSharedSizeScope="True">
+                    <!-- Cabeçalho das faixas -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="26" />
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="48" />
+                            <ColumnDefinition Width="56" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="#" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextoFraco}" />
+                        <TextBlock Grid.Column="1" Text="Faixa" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextoFraco}" />
+                        <TextBlock Grid.Column="2" Text="Duração" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextoFraco}" HorizontalAlignment="Right" />
+                        <TextBlock Grid.Column="3" Text="vs. disco" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextoFraco}" HorizontalAlignment="Right"
+                                   ToolTip="Diferença para a duração da faixa no disco." />
+                    </Grid>
+
+                    <ItemsControl x:Name="m_lstFaixas">
+                        <ItemsControl.ItemTemplate>
+                            <!-- LinhaDaFaixa: uma faixa da fonte. Os campos vêm de TLinhaFonte (PainelFonte.xaml.cs). -->
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="26" />
+                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="48" />
+                                        <ColumnDefinition Width="56" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding strNumero}" FontSize="12" Foreground="{StaticResource TextoFraco}" VerticalAlignment="Top" />
+                                    <StackPanel Grid.Column="1" Margin="0,0,6,0">
+                                        <TextBlock Text="{Binding strTitulo}" FontSize="12" Foreground="{StaticResource Texto}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding strArtista}" FontSize="11" Foreground="{StaticResource TextoFraco}" TextWrapping="Wrap"
+                                                   Visibility="{Binding visArtista}" />
+                                        <TextBlock Text="{Binding strCompositor}" FontSize="11" Foreground="{StaticResource TextoFraco}" TextTrimming="CharacterEllipsis"
+                                                   Visibility="{Binding visCompositor}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding strDuracao}" FontSize="12" Foreground="{StaticResource TextoFraco}"
+                                               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,6,0" />
+                                    <TextBlock Grid.Column="3" Text="{Binding strDif}" FontSize="12" Foreground="{Binding objCorDif}" FontWeight="{Binding objPesoDif}"
+                                               HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip="{Binding strDicaDif}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

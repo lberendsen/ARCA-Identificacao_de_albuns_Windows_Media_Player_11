@@ -1,0 +1,14 @@
+# Saídas de build e de execução
+bin/
+obj/
+Debug/
+Release/
+*.user
+*.suo
+*.sdf
+*.log
+Testes/Resultados/
+TestResults/
+# Chaves e configuração local do ARCA Central: nunca no repositório
+*.chave
+central.ini

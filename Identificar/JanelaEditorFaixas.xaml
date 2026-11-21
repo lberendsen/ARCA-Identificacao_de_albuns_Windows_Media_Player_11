@@ -1,0 +1,165 @@
+﻿<Window x:Class="ARCA.Identificar.JanelaEditorFaixas"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Catalogar à mão"
+        Width="980" Height="820" MinWidth="760" MinHeight="520"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource Canvas}">
+    <!-- Catalogação à mão: para o disco que nenhum catálogo conhece; o encarte
+         na mão é a fonte. Número e duração vêm dos arquivos e não se editam.
+         A tira de páginas do encarte é desenhada pelo modelo "PaginaDoEncarte",
+         mais abaixo. Comportamento no JanelaEditorFaixas.xaml.cs. -->
+    <DockPanel>
+
+        <Border DockPanel.Dock="Top" Background="{StaticResource CabecalhoColuna}"
+                BorderBrush="{StaticResource Borda}" BorderThickness="0,0,0,1" Padding="14,10">
+            <StackPanel>
+                <TextBlock Text="Catalogar este disco a partir do encarte" FontSize="15" Foreground="{StaticResource Acento}" />
+                <TextBlock x:Name="m_lblResumo" Style="{StaticResource Fraco}" Margin="0,3,0,0"
+                           Text="N faixas · 0:00. Número e duração vêm dos arquivos — use-os para conferir o encarte." />
+            </StackPanel>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource BarraFerramentas}"
+                BorderBrush="{StaticResource Borda}" BorderThickness="0,1,0,0" Padding="14,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="m_lblAviso" Foreground="{StaticResource Alarme}" FontSize="12"
+                           VerticalAlignment="Center" TextWrapping="Wrap" Text="(avisos)" />
+                <Button Grid.Column="1" Content="Cancelar" IsCancel="True" Padding="18,6" Margin="12,0,0,0" Click="AoCancelar" />
+                <Button Grid.Column="2" Content="Aplicar ao disco" Padding="18,6" Margin="8,0,0,0" Click="AoAplicar" />
+            </Grid>
+        </Border>
+
+        <DockPanel Margin="14">
+            <!-- ===== Dados do álbum: capa à esquerda; campos e encarte à direita ===== -->
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Width="150" HorizontalAlignment="Left">
+                    <Border Width="150" Height="150" HorizontalAlignment="Left"
+                            Background="{StaticResource PainelLateral}" BorderBrush="{StaticResource Borda}" BorderThickness="1">
+                        <Grid>
+                            <TextBlock x:Name="m_lblSemCapa" Text="sem capa" Style="{StaticResource Fraco}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Image x:Name="m_imgCapa" Stretch="UniformToFill" />
+                        </Grid>
+                    </Border>
+                    <Button Content="Digitalizar capa…" Padding="0,4" Margin="0,6,0,0" Click="AoDigitalizarCapa"
+                            ToolTip="Abre o scanner. Depois da digitalização, você recorta a capa." />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Button Content="De arquivo…" Padding="0,3" Click="AoEscolherCapa" />
+                        <Button Grid.Column="1" Content="Tirar" Padding="8,3" Margin="4,0,0,0" Click="AoTirarCapa" />
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Artista do álbum" Style="{StaticResource Fraco}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                        <TextBox x:Name="m_txtArtista" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" />
+                        <TextBlock Grid.Row="1" Text="Álbum" Style="{StaticResource Fraco}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                        <TextBox x:Name="m_txtAlbum" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8" />
+                        <TextBlock Grid.Row="2" Text="Ano" Style="{StaticResource Fraco}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                        <TextBox x:Name="m_txtAno" Grid.Row="2" Grid.Column="1" Width="70" MaxLength="4" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                        <TextBlock Grid.Row="3" Text="Gênero" Style="{StaticResource Fraco}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                        <TextBox x:Name="m_txtGenero" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8" />
+                    </Grid>
+
+                    <!-- Encarte: abaixo dos campos, na mesma coluna. -->
+                    <DockPanel Margin="0,6,0,6">
+                        <Button DockPanel.Dock="Right" Content="De arquivo…" Padding="10,3" Margin="6,0,0,0" Click="AoPaginaDeArquivo" />
+                        <Button DockPanel.Dock="Right" Content="Digitalizar página…" Padding="10,3" Click="AoDigitalizarPagina"
+                                ToolTip="Uma página por vez, na ordem do livreto. Cada uma passa pelo corte." />
+                        <TextBlock x:Name="m_lblEncarte" Text="Encarte" Style="{StaticResource Rotulo}" VerticalAlignment="Center" Margin="0" />
+                    </DockPanel>
+                    <ScrollViewer Height="150" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <TextBlock x:Name="m_lblSemPaginas" Style="{StaticResource Fraco}" VerticalAlignment="Center" MaxWidth="520" HorizontalAlignment="Left"
+                                       Text="Nenhuma página. As páginas vão para a pasta Artwork do álbum." />
+                            <ItemsControl x:Name="m_lstPaginas">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <!-- PaginaDoEncarte: miniatura e os botões de cada página (TMiniaturaPagina). -->
+                                    <DataTemplate>
+                                        <StackPanel Width="84" Margin="0,0,8,0">
+                                            <Border Width="84" Height="84" Background="{StaticResource PainelLateral}"
+                                                    BorderBrush="{StaticResource Borda}" BorderThickness="1" ToolTip="{Binding strDica}">
+                                                <Image Source="{Binding objImagem}" Stretch="Uniform" />
+                                            </Border>
+                                            <Grid Margin="0,3,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition />
+                                                    <ColumnDefinition />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Button Content="↺" FontFamily="Segoe UI Symbol" FontSize="12" Padding="0" Margin="0,0,2,0"
+                                                        ToolTip="Girar 90° para a esquerda" Click="AoGirarEsquerda" />
+                                                <Button Grid.Column="1" Content="↻" FontFamily="Segoe UI Symbol" FontSize="12" Padding="0" Margin="2,0,0,0"
+                                                        ToolTip="Girar 90° para a direita" Click="AoGirarDireita" />
+                                                <Button Grid.Row="1" Content="Dividir" FontSize="10" Padding="0,1" Margin="0,3,2,0"
+                                                        ToolTip="Dividir em duas páginas por uma linha vertical (duas páginas digitalizadas juntas)" Click="AoDividir" />
+                                                <Button Grid.Row="1" Grid.Column="1" Content="Tirar" FontSize="10" Padding="0,1" Margin="2,3,0,0"
+                                                        ToolTip="Tirar esta página" Click="AoTirarPagina" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </ScrollViewer>
+                </StackPanel>
+            </Grid>
+
+            <!-- ===== Faixas ===== -->
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                <Button DockPanel.Dock="Right" Content="Colar títulos" Padding="10,3" Click="AoColarTitulos"
+                        ToolTip="Cola uma lista de títulos, uma faixa por linha (de um bloco de notas, por exemplo).&#10;Números e traços no começo da linha (&quot;01 - &quot;, &quot;1.&quot;) são ignorados." />
+                <TextBlock Text="Faixas — título obrigatório; intérprete só se for diferente do artista do álbum"
+                           Style="{StaticResource Rotulo}" VerticalAlignment="Center" Margin="0" />
+            </DockPanel>
+
+            <DataGrid x:Name="m_grade" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                      CanUserReorderColumns="False" CanUserSortColumns="False" HeadersVisibility="Column"
+                      SelectionUnit="Cell" RowHeight="24" GridLinesVisibility="Horizontal">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="#" Width="36" IsReadOnly="True" Binding="{Binding Numero}" />
+                    <DataGridTextColumn Header="Duração" Width="64" IsReadOnly="True" Binding="{Binding Duracao}" />
+                    <DataGridTextColumn Header="Título" Width="2.2*" EditingElementStyle="{StaticResource EdicaoCelula}"
+                                        Binding="{Binding Titulo, UpdateSourceTrigger=PropertyChanged}" />
+                    <DataGridTextColumn Header="Intérprete" Width="1*" EditingElementStyle="{StaticResource EdicaoCelula}"
+                                        Binding="{Binding Interprete, UpdateSourceTrigger=PropertyChanged}" />
+                    <DataGridTextColumn Header="Compositor" Width="1.3*" EditingElementStyle="{StaticResource EdicaoCelula}"
+                                        Binding="{Binding Compositor, UpdateSourceTrigger=PropertyChanged}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+    </DockPanel>
+</Window>

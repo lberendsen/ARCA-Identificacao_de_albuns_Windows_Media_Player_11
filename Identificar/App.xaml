@@ -1,0 +1,14 @@
+﻿<Application x:Class="ARCA.Identificar.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- O tema entra aqui para valer no programa inteiro E no designer do
+         VS 2010 (que procura os recursos no App.xaml do projeto). Quem abre o
+         programa é o Programa.Main, não este arquivo (StartupObject no .csproj). -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Tema.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
