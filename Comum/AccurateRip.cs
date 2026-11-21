@@ -281,10 +281,26 @@ namespace ARCA.Modelo
         /// As prensagens que a base tem para o disco. Lista vazia = disco não
         /// está na base (não é erro). null = não consegui consultar (strFalha).
         /// </summary>
+        /// <summary>
+        /// Quem traz o arquivo da base quando esta máquina não sai para a internet (o ARCA
+        /// Identificar, no Windows do WMP: pede ao ARCA Central). Devolve os bytes do dBAR,
+        /// um array vazio se o disco não está na base, ou null com a falha. Sem ele, a
+        /// consulta vai direto ao accuraterip.com.
+        /// </summary>
+        public delegate byte[] ObterArquivoDaBase(TTocAudio objToc, out string strFalha);
+        public static ObterArquivoDaBase objObterBase;
+
         public static List<TPrensagem> Consultar(TTocAudio objToc, out string strUrl, out string strFalha)
         {
             strFalha = null;
             strUrl = Url(objToc);
+            if (objObterBase != null)
+            {
+                byte[] arr = objObterBase(objToc, out strFalha);
+                if (arr == null) return null;
+                if (arr.Length == 0) return new List<TPrensagem>();
+                return Interpretar(arr, objToc, out strFalha);
+            }
             byte[] arrDados;
             try
             {

@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Web.Script.Serialization;
 using ARCA.Central;
+using ARCA.Modelo;
 
 namespace ARCA.Identificar
 {
@@ -91,6 +92,32 @@ namespace ARCA.Identificar
         }
 
         /// <summary>O arquivo da base do AccurateRip para o disco do índice (só o download; a conta é no Vista).</summary>
+        /// <summary>O arquivo dBAR da base para o motor de rip (AccurateRip.objObterBase).</summary>
+        public static byte[] ArquivoDaBase(TTocAudio objToc, out string strFalha)
+        {
+            strFalha = null;
+            try
+            {
+                TResposta r = AccurateRip(objToc.ParaMcdi(), objToc.QtdFaixas);
+                if (!string.IsNullOrEmpty(r.strErro)) { strFalha = r.strErro; return null; }
+                if (r.blnForaDaBase) return new byte[0];
+                return Convert.FromBase64String(r.strDadosBase64 ?? "");
+            }
+            catch (Exception ex) { strFalha = "ARCA Central: " + ex.Message; return null; }
+        }
+
+        /// <summary>A tabela de offset dos leitores para o motor de rip (OffsetDrive.objObterTabela).</summary>
+        public static byte[] TabelaDeOffsets()
+        {
+            try
+            {
+                TResposta r = Enviar<TResposta>("/offsets", new TPedido(), 60000);
+                if (!string.IsNullOrEmpty(r.strErro) || string.IsNullOrEmpty(r.strDadosBase64)) return null;
+                return Convert.FromBase64String(r.strDadosBase64);
+            }
+            catch { return null; }
+        }
+
         public static TResposta AccurateRip(string strMcdi, int intFaixasAudio)
         {
             return Enviar<TResposta>("/accuraterip", new TPedido { strMcdi = strMcdi, intFaixasAudio = intFaixasAudio }, 60000);

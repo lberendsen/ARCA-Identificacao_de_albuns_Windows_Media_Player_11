@@ -21,6 +21,7 @@
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <FileAlignment>512</FileAlignment>
     <CodePage>65001</CodePage>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -67,6 +68,9 @@
     <Compile Include="Unidade\TesteIndiceDoCd.cs" />
     <Compile Include="Unidade\TesteCasamento.cs" />
     <Compile Include="Unidade\TesteNomes.cs" />
+    <Compile Include="Unidade\TesteMotorDeRip.cs" />
+    <Compile Include="Integracao\TesteLeitorCd.cs" />
+    <Compile Include="Integracao\TesteCopiaDoCd.cs" />
     <Compile Include="Integracao\TesteGravacao.cs" />
     <Compile Include="Integracao\TesteCentral.cs" />
     <Compile Include="Integracao\TesteAccurateRip.cs" />

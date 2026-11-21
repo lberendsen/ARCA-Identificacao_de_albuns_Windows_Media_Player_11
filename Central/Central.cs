@@ -19,6 +19,9 @@
 //   POST /accuraterip {strMcdi, intFaixasAudio}
 //                 -> o arquivo da base do AccurateRip para o disco (base64); as
 //                    assinaturas das faixas são calculadas no Vista
+//   POST /offsets {}
+//                 -> a tabela de offset dos leitores do AccurateRip (DriveOffsets.bin, base64),
+//                    para o ARCA Ripar corrigir o deslocamento do leitor do Vista
 //   POST /som     {lstCaminhos}
 //                 -> o disco pelo SOM das faixas (fpcalc + AcoustID + MusicBrainz),
 //                    lidas do Vista pelo compartilhamento; só a impressão digital sai
@@ -232,6 +235,28 @@ namespace ARCA.Central
                                 else objR.strErro = "não consegui consultar o AccurateRip: " + ex.Message;
                             }
                         }
+                        strResposta = jss.Serialize(objR);
+                    }
+                    else if (strMetodo == "POST" && strCaminho == "/offsets")
+                    {
+                        TResposta objR = new TResposta();
+                        objR.strUrl = "http://www.accuraterip.com/accuraterip/DriveOffsets.bin";
+                        try
+                        {
+                            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(objR.strUrl);
+                            req.Proxy = NetworkConfiguration.CreateProxy();
+                            req.UserAgent = "ARCA";
+                            req.Timeout = 30000;
+                            using (HttpWebResponse resp = NetworkConfiguration.Responder(req))
+                            using (Stream s = resp.GetResponseStream())
+                            using (MemoryStream ms = new MemoryStream())
+                            {
+                                s.CopyTo(ms);
+                                objR.strDadosBase64 = Convert.ToBase64String(ms.ToArray());
+                            }
+                            Registrar("   offsets dos leitores: " + objR.strDadosBase64.Length * 3 / 4 + " bytes");
+                        }
+                        catch (WebException ex) { objR.strErro = "não consegui baixar a tabela de offsets: " + ex.Message; }
                         strResposta = jss.Serialize(objR);
                     }
                     else if (strMetodo == "POST" && strCaminho == "/som")

@@ -27,6 +27,19 @@ namespace ARCA.Identificar
             }
         }
 
+        /// <summary>Onde o ARCA Ripar põe os discos copiados até a aprovação: fora do acervo e das pastas que o WMP vigia.</summary>
+        public static string PastaDeEntrada { get { return Configuracao("PastaDeEntrada", @"D:\ARCA\Entrada"); } }
+
+        /// <summary>A raiz do acervo (Artista\Álbum), para onde o "Aplicar às faixas" leva o disco copiado.</summary>
+        public static string Acervo { get { return Configuracao("Acervo", @"D:\Músicas"); } }
+
+        private static string Configuracao(string strChave, string strPadrao)
+        {
+            string s = null;
+            try { s = System.Configuration.ConfigurationManager.AppSettings[strChave]; } catch { }
+            return string.IsNullOrEmpty(s) ? strPadrao : s;
+        }
+
         public static void Registrar(string strTexto)
         {
             try { File.AppendAllText(ArquivoDeLog, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  " + strTexto + Environment.NewLine, Encoding.UTF8); }
@@ -40,6 +53,9 @@ namespace ARCA.Identificar
             {
                 Registrar("ERRO fatal: " + e.ExceptionObject);
             };
+            // Esta máquina não sai para a internet: a base do AccurateRip vem pelo ARCA Central.
+            ARCA.Modelo.AccurateRip.objObterBase = ClienteCentral.ArquivoDaBase;
+            ARCA.Modelo.OffsetDrive.objObterTabela = ClienteCentral.TabelaDeOffsets;
             // O App.xaml traz o tema (Tema.xaml, compilado junto).
             App app = new App();
             app.InitializeComponent();
@@ -52,6 +68,23 @@ namespace ARCA.Identificar
                                 MessageBoxButton.OK, MessageBoxImage.Error);
                 e.Handled = true;
             };
+
+            // "/ripar E:" — o item "ARCA: copiar este CD" do menu Copiar do CD do WMP.
+            if (args.Length > 0 && args[0].Equals("/ripar", StringComparison.OrdinalIgnoreCase))
+            {
+                char chrLetra = args.Length > 1 && args[1].Length > 0 ? char.ToUpperInvariant(args[1][0]) : 'E';
+                Registrar("copiar o CD do leitor " + chrLetra + ": · entrada " + PastaDeEntrada + " · acervo " + Acervo);
+                // Duas janelas vivem juntas (o rip e o Identificar): o programa acaba quando a última fechar.
+                app.ShutdownMode = ShutdownMode.OnLastWindowClose;
+                return app.Run(new JanelaRipar(chrLetra, PastaDeEntrada, Acervo));
+            }
+
+            // "/ripar-ver <pasta>": rever o resultado de uma cópia já feita (a pasta de entrada).
+            if (args.Length > 1 && args[0].Equals("/ripar-ver", StringComparison.OrdinalIgnoreCase))
+            {
+                app.ShutdownMode = ShutdownMode.OnLastWindowClose;
+                return app.Run(JanelaRipar.DeCopiaFeita(args[1], Acervo));
+            }
 
             List<string> lstArquivos = new List<string>();
             try

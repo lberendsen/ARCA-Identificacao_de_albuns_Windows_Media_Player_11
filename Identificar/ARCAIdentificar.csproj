@@ -16,6 +16,7 @@
     <RootNamespace>ARCA.Identificar</RootNamespace>
     <AssemblyName>ARCAIdentificar</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -43,6 +44,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -132,6 +134,13 @@
     <Compile Include="JanelaSepararDesconhecido.xaml.cs">
       <DependentUpon>JanelaSepararDesconhecido.xaml</DependentUpon>
     </Compile>
+    <Page Include="JanelaRipar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="JanelaRipar.xaml.cs">
+      <DependentUpon>JanelaRipar.xaml</DependentUpon>
+    </Compile>
     <Page Include="JanelaConferenciaAlbum.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -164,6 +173,7 @@
     <Compile Include="CasadorDiscografia.cs" />
     <Compile Include="OrganizadorDiscografia.cs" />
     <Compile Include="ScannerCentral.cs" />
+    <Compile Include="Ripador.cs" />
     <Compile Include="ImagensDoEncarte.cs" />
     <Compile Include="CasadorFaixasSoltas.cs" />
     <Compile Include="SeparadorDesconhecido.cs" />
@@ -212,6 +222,39 @@
     </Compile>
     <Compile Include="..\Comum\EditorAsf.cs">
       <Link>Comum\EditorAsf.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\SptiDiscReader.cs">
+      <Link>Comum\SptiDiscReader.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\SptiImageExtractor.cs">
+      <Link>Comum\SptiImageExtractor.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\CdromTocReader.cs">
+      <Link>Comum\CdromTocReader.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\EscritorWma.cs">
+      <Link>Comum\EscritorWma.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\AcquisitionLogger.cs">
+      <Link>Comum\AcquisitionLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\AcquisitionModels.cs">
+      <Link>Comum\AcquisitionModels.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\ProcessadorExtracaoAudio.cs">
+      <Link>Comum\ProcessadorExtracaoAudio.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\ConferenciaBitPerfect.cs">
+      <Link>Comum\ConferenciaBitPerfect.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\RelatorioExtracao.cs">
+      <Link>Comum\RelatorioExtracao.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\OrdemFaixas.cs">
+      <Link>Comum\OrdemFaixas.cs</Link>
+    </Compile>
+    <Compile Include="..\Comum\CdExtraExtractor.cs">
+      <Link>Comum\CdExtraExtractor.cs</Link>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

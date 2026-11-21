@@ -11,6 +11,10 @@
 //     lista da biblioteca) para o item do ARCA em "Enviar para". O id desse item
 //     e dinamico: e lido do proprio submenu quando o menu de contexto abre.
 //
+//  3. No menu "Copiar do CD" (o botao da vista de copia), poe o item "ARCA: copiar este CD
+//     (copia segura)" logo abaixo do "Copiar do CD '...' (E:)" do WMP. Clicado, abre o
+//     ARCAIdentificar.exe /ripar E: - a copia segura, fora do acervo, ate a aprovacao.
+//
 // O desvio foi provado por uma sonda dentro do WMP antes de virar produto (19/11/2026).
 // Log curto em %TEMP%\ARCA\ponte.log.
 
@@ -21,6 +25,7 @@
 #include <olectl.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <wctype.h>
 #include <wmp.h>
 #include <wmpplug.h>
 
@@ -35,6 +40,9 @@ static const wchar_t* STR_CLSID = L"{EF03AEB5-0BA5-4ACE-9A5F-BDBF1FF99321}";
 static const wchar_t* STR_NOME  = L"ARCA: identificar álbum";   // e o texto do item em "Enviar para"
 static const UINT ID_LOCALIZAR_ALBUM = 7312;
 static const UINT ID_ENVIAR_PARA     = 7726;
+static const UINT ID_COPIAR_DO_CD    = 7952;    // "Copiar do CD 'Album' (E:)", no botao Copiar do CD
+static const UINT ID_ARCA_RIPAR      = 41730;   // o nosso; longe dos do WMP (7000-20000) e dos do MFC (0xE000+)
+static const wchar_t* STR_RIPAR      = L"ARCA: copiar este CD (cópia segura)";
 
 static HINSTANCE        g_hInst = NULL;
 static LONG             g_lngObjetos = 0, g_lngTravas = 0, g_lngDonosGancho = 0;
@@ -42,6 +50,10 @@ static CRITICAL_SECTION g_cs;
 static bool             g_blnCs = false;
 static HHOOK            g_hkChamada = NULL, g_hkFila = NULL;
 static UINT             g_uintIdArca = 0;
+static HHOOK            g_hkFiltro = NULL;
+static wchar_t          g_chrLeitor = L'E';      // a letra do "(E:)" do item do WMP
+static bool             g_blnRiparRealcado = false, g_blnRiparPendente = false;
+static DWORD            g_dwUltimoRipar = 0;
 
 // ---------------------------------------------------------------- log
 
@@ -160,7 +172,35 @@ static void AbrirIdentificar(SAFEARRAY* psa, IWMPPlaylist* pl)
     }
 }
 
-// ---------------------------------------------------------------- ganchos (o desvio do 7312)
+static void AbrirRipar()
+{
+    DWORD dwAgora = GetTickCount();
+    if (g_dwUltimoRipar && dwAgora - g_dwUltimoRipar < 3000) return;
+    g_dwUltimoRipar = dwAgora;
+
+    wchar_t exe[MAX_PATH];
+    GetModuleFileNameW(g_hInst, exe, MAX_PATH);
+    wchar_t* barra = wcsrchr(exe, L'\\');
+    if (barra) *(barra + 1) = 0;
+    wcscat_s(exe, L"ARCAIdentificar.exe");
+    wchar_t cmd[MAX_PATH + 32];
+    swprintf_s(cmd, L"\"%s\" /ripar %c:", exe, g_chrLeitor);
+    STARTUPINFOW si; ZeroMemory(&si, sizeof(si)); si.cb = sizeof(si);
+    PROCESS_INFORMATION pi; ZeroMemory(&pi, sizeof(pi));
+    if (CreateProcessW(exe, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+    {
+        Registrar(L"ARCA Ripar aberto para o leitor %c:", g_chrLeitor);
+        CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
+    }
+    else
+    {
+        Registrar(L"FALHA ao abrir %s (erro %lu)", exe, GetLastError());
+        MessageBoxW(NULL, L"Não consegui abrir o ARCAIdentificar.exe, que deveria estar ao lado de ARCAPonte.dll.",
+                    STR_RIPAR, MB_OK | MB_ICONERROR);
+    }
+}
+
+// ---------------------------------------------------------------- ganchos (o desvio do 7312, o item do rip)
 
 static void ProcurarItemArca(HMENU hm, int intNivel)
 {
@@ -177,11 +217,123 @@ static void ProcurarItemArca(HMENU hm, int intNivel)
     }
 }
 
+// Diagnóstico: com o arquivo %TEMP%\ARCA\ponte-menus.sinal presente, cada menu que o WMP abre
+// vai para o log, item a item (número e texto). Serve para achar onde pôr um item novo.
+static bool DiagnosticoDeMenus()
+{
+    wchar_t pasta[MAX_PATH], arq[MAX_PATH];
+    PastaTemporariaArca(pasta, MAX_PATH);
+    swprintf_s(arq, L"%s\\ponte-menus.sinal", pasta);
+    return GetFileAttributesW(arq) != INVALID_FILE_ATTRIBUTES;
+}
+
+static void RegistrarMenu(HMENU hm)
+{
+    int c = GetMenuItemCount(hm);
+    Registrar(L"menu %p, %d itens:", hm, c);
+    for (int i = 0; i < c && i < 60; i++)
+    {
+        MENUITEMINFOW mii; ZeroMemory(&mii, sizeof(mii)); mii.cbSize = sizeof(mii);
+        wchar_t txt[256] = L"";
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_SUBMENU | MIIM_FTYPE;
+        mii.dwTypeData = txt; mii.cch = 255;
+        if (!GetMenuItemInfoW(hm, i, TRUE, &mii)) continue;
+        if (mii.fType & MFT_SEPARATOR) { Registrar(L"   ---"); continue; }
+        Registrar(L"   %5u  %s%s", mii.wID, txt, mii.hSubMenu ? L"  >" : L"");
+    }
+}
+
+// O menu do botao "Copiar do CD": se tem o item do WMP (7952), poe o nosso logo abaixo,
+// com o mesmo estado (cinza quando o WMP nao deixa copiar), e guarda a letra do leitor.
+static void PorItemRipar(HMENU hm)
+{
+    int c = GetMenuItemCount(hm), intPos = -1;
+    bool blnJaTem = false;
+    UINT uintEstado = 0;
+    wchar_t txt[256] = L"";
+    for (int i = 0; i < c && i < 60; i++)
+    {
+        UINT id = GetMenuItemID(hm, i);
+        if (id == ID_ARCA_RIPAR) blnJaTem = true;
+        if (id != ID_COPIAR_DO_CD) continue;
+        intPos = i;
+        MENUITEMINFOW mii; ZeroMemory(&mii, sizeof(mii)); mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_STRING | MIIM_STATE; mii.dwTypeData = txt; mii.cch = 255;
+        if (GetMenuItemInfoW(hm, i, TRUE, &mii)) uintEstado = mii.fState;
+    }
+    if (intPos < 0) return;
+    // "Copiar do CD 'Album' (E:)": a letra fica no ultimo "(X:)".
+    for (wchar_t* q = wcsrchr(txt, L'('); q; q = NULL)
+        if (q[1] && q[2] == L':' && q[3] == L')') g_chrLeitor = towupper(q[1]);
+    if (blnJaTem)
+    {
+        EnableMenuItem(hm, ID_ARCA_RIPAR, MF_BYCOMMAND | ((uintEstado & MFS_GRAYED) ? MF_GRAYED : MF_ENABLED));
+        return;
+    }
+    MENUITEMINFOW n; ZeroMemory(&n, sizeof(n)); n.cbSize = sizeof(n);
+    n.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+    n.wID = ID_ARCA_RIPAR;
+    n.dwTypeData = (LPWSTR)STR_RIPAR;
+    n.fState = (uintEstado & MFS_GRAYED) ? MFS_GRAYED : MFS_ENABLED;
+    if (InsertMenuItemW(hm, intPos + 1, TRUE, &n))
+        Registrar(L"item do rip posto no menu Copiar do CD (leitor %c:%s)", g_chrLeitor, (uintEstado & MFS_GRAYED) ? L", cinza como o do WMP" : L"");
+    else Registrar(L"FALHA ao pôr o item do rip no menu (erro %lu)", GetLastError());
+}
+
+static bool TemItem(HMENU hm, UINT id)
+{
+    int c = GetMenuItemCount(hm);
+    for (int i = 0; i < c && i < 100; i++) if (GetMenuItemID(hm, i) == id) return true;
+    return false;
+}
+
 static LRESULT CALLBACK GanchoChamada(int nCode, WPARAM wp, LPARAM lp)
 {
-    if (nCode == HC_ACTION && ((CWPSTRUCT*)lp)->message == WM_INITMENUPOPUP)
-        ProcurarItemArca((HMENU)((CWPSTRUCT*)lp)->wParam, 0);
-    return CallNextHookEx(g_hkChamada, nCode, wp, lp);
+    if (nCode == HC_ACTION)
+    {
+        CWPSTRUCT* c = (CWPSTRUCT*)lp;
+        if (c->message == WM_INITMENUPOPUP)
+        {
+            HMENU hm = (HMENU)c->wParam;
+            // Menu com o "Localizar Informacoes sobre o Album": o item do ARCA vale o que estiver
+            // NESTE menu. Na vista de copia do CD nao ha "Enviar para" (faixas sem arquivo): ai
+            // fica 0 e o 7312 segue para o WMP, em vez de ir para um item de outro menu.
+            if (TemItem(hm, ID_LOCALIZAR_ALBUM)) g_uintIdArca = 0;
+            ProcurarItemArca(hm, 0);
+            PorItemRipar(hm);
+            if (DiagnosticoDeMenus()) RegistrarMenu(hm);
+        }
+        else if (c->message == WM_MENUSELECT)
+        {
+            // O item realcado agora. 0xFFFF com menu nulo = o menu fechou.
+            UINT id = LOWORD(c->wParam), fl = HIWORD(c->wParam);
+            g_blnRiparRealcado = id == ID_ARCA_RIPAR && !(fl & (MF_POPUP | MF_GRAYED | MF_DISABLED));
+        }
+        else if (c->message == WM_COMMAND && c->lParam == 0 && LOWORD(c->wParam) == ID_ARCA_RIPAR)
+            g_blnRiparPendente = true;
+        else if (c->message == WM_EXITMENULOOP || c->message == WM_UNINITMENUPOPUP)
+        {
+            if (g_blnRiparPendente) { g_blnRiparPendente = false; g_blnRiparRealcado = false; AbrirRipar(); }
+        }
+    }
+    LRESULT r = CallNextHookEx(g_hkChamada, nCode, wp, lp);
+    // Comando enviado direto (sem laco de menu depois): abre ja.
+    if (nCode == HC_ACTION && g_blnRiparPendente && ((CWPSTRUCT*)lp)->message == WM_COMMAND)
+    { g_blnRiparPendente = false; AbrirRipar(); }
+    return r;
+}
+
+// Dentro do laco do menu: o clique ou o Enter sobre o nosso item. Cobre o caso do menu aberto
+// com TPM_RETURNCMD, em que o WMP recebe o numero de volta e nenhum WM_COMMAND e mandado.
+static LRESULT CALLBACK GanchoFiltro(int nCode, WPARAM wp, LPARAM lp)
+{
+    if (nCode == MSGF_MENU && g_blnRiparRealcado)
+    {
+        MSG* m = (MSG*)lp;
+        if (m->message == WM_LBUTTONUP || (m->message == WM_KEYDOWN && m->wParam == VK_RETURN))
+            g_blnRiparPendente = true;
+    }
+    return CallNextHookEx(g_hkFiltro, nCode, wp, lp);
 }
 
 static LRESULT CALLBACK GanchoFila(int nCode, WPARAM wp, LPARAM lp)
@@ -189,6 +341,14 @@ static LRESULT CALLBACK GanchoFila(int nCode, WPARAM wp, LPARAM lp)
     if (nCode == HC_ACTION && wp == PM_REMOVE)
     {
         MSG* m = (MSG*)lp;
+        if (m->message == WM_COMMAND && m->lParam == 0 && DiagnosticoDeMenus())
+            Registrar(L"comando do menu: %u", (UINT)LOWORD(m->wParam));
+        if (m->message == WM_COMMAND && m->lParam == 0 && LOWORD(m->wParam) == ID_ARCA_RIPAR)
+        {
+            m->message = WM_NULL;   // o WMP nao conhece este numero
+            g_blnRiparPendente = false; g_blnRiparRealcado = false;
+            AbrirRipar();
+        }
         if (m->message == WM_COMMAND && m->lParam == 0 && LOWORD(m->wParam) == ID_LOCALIZAR_ALBUM)
         {
             if (g_uintIdArca)
@@ -207,7 +367,8 @@ static void InstalarGanchos()
     if (InterlockedIncrement(&g_lngDonosGancho) != 1) return;
     g_hkChamada = SetWindowsHookExW(WH_CALLWNDPROC, GanchoChamada, NULL, GetCurrentThreadId());
     g_hkFila    = SetWindowsHookExW(WH_GETMESSAGE, GanchoFila, NULL, GetCurrentThreadId());
-    Registrar(L"ponte carregada no WMP; ganchos %s", (g_hkChamada && g_hkFila) ? L"ok" : L"FALHARAM");
+    g_hkFiltro  = SetWindowsHookExW(WH_MSGFILTER, GanchoFiltro, NULL, GetCurrentThreadId());
+    Registrar(L"ponte carregada no WMP; ganchos %s", (g_hkChamada && g_hkFila && g_hkFiltro) ? L"ok" : L"FALHARAM");
 }
 
 static void RemoverGanchos()
@@ -215,7 +376,8 @@ static void RemoverGanchos()
     if (InterlockedDecrement(&g_lngDonosGancho) != 0) return;
     if (g_hkChamada) UnhookWindowsHookEx(g_hkChamada);
     if (g_hkFila) UnhookWindowsHookEx(g_hkFila);
-    g_hkChamada = g_hkFila = NULL;
+    if (g_hkFiltro) UnhookWindowsHookEx(g_hkFiltro);
+    g_hkChamada = g_hkFila = g_hkFiltro = NULL;
 }
 
 // ---------------------------------------------------------------- o plug-in

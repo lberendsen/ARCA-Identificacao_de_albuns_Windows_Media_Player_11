@@ -45,9 +45,19 @@ namespace ARCA.Identificar
         /// </summary>
         public string strRaizParaMover { get; set; }
 
+        /// <summary>Ao mover, a pasta do disco leva o ano ("1994 - Álbum")? O acervo de CDs ripados é Artista\Álbum, como o WMP faz.</summary>
+        public bool blnAnoNaPasta { get; set; }
+
+        /// <summary>Começar a identificação sozinha ao abrir (o ARCA Ripar: as faixas trazem o índice do CD).</summary>
+        public bool blnIdentificarAoAbrir { get; set; }
+
+        /// <summary>O que o ledger registra como origem da gravação (null = a identificação pelo WMP).</summary>
+        public string strEventoAoAplicar { get; set; }
+
         public JanelaIdentificar(List<string> lstArquivos)
         {
             InitializeComponent();
+            blnAnoNaPasta = true;
             LerFaixas(lstArquivos);
             PreencherCabecalho();
 
@@ -74,7 +84,11 @@ namespace ARCA.Identificar
             else if (m_strMcdi != null)
                 Status("As faixas guardam o índice do CD: basta clicar em Identificar (nome e álbum são opcionais). Nada muda nos arquivos até \"Aplicar às faixas\".", false);
             else Status("Diga o que sabe e clique em Identificar — ou, para disco que nenhum catálogo conhece, Catalogar à mão. Nada muda nos arquivos até \"Aplicar às faixas\".", false);
-            Loaded += delegate { m_txtArtista.Focus(); m_txtArtista.SelectAll(); };
+            Loaded += delegate
+            {
+                m_txtArtista.Focus(); m_txtArtista.SelectAll();
+                if (blnIdentificarAoAbrir && m_btnIdentificar.IsEnabled) AoIdentificar(this, null);
+            };
             Closing += delegate(object s, System.ComponentModel.CancelEventArgs e)
             {
                 if (!m_blnGravando) return;
@@ -526,7 +540,8 @@ namespace ARCA.Identificar
                 arrCapa = blnCapa ? m_objEscolhido.arrCapa : null,
                 arrCapaPlena = blnCapa ? m_objEscolhido.arrCapaPlena : null,
                 lstEncarte = intPaginas > 0 ? m_objEscolhido.lstEncarte : null,
-                strOrigemCapa = m_strOrigemCapa
+                strOrigemCapa = m_strOrigemCapa,
+                strEvento = strEventoAoAplicar
             };
 
             m_btnAplicar.IsEnabled = false;
@@ -543,7 +558,7 @@ namespace ARCA.Identificar
             Task.Factory.StartNew(delegate
             {
                 int intOk = 0; Exception objErro = null;
-                string strDestino = strRaizParaMover == null ? null : SeparadorDesconhecido.PastaDoDisco(strRaizParaMover, strArtista, strAno, strAlbum);
+                string strDestino = strRaizParaMover == null ? null : SeparadorDesconhecido.PastaDoDisco(strRaizParaMover, strArtista, blnAnoNaPasta ? strAno : null, strAlbum);
                 objDados.blnRenomearAoMover = strDestino != null;
                 try { intOk = GravadorMp3.Aplicar(m_lstFaixas, objDados, actLog, actProgresso, strDestino, true); }
                 catch (Exception ex) { objErro = ex; }

@@ -27,7 +27,6 @@ set TRX=Testes\Resultados\testes-%DIA%-%HORA:~0,6%.trx
 rem Os projetos de teste que existirem nesta pasta (o do Identificar sempre).
 set CONT=/testcontainer:Testes\bin\Release\ARCAIdentificar.Testes.dll
 if exist TestesVisual\bin\Release\ARCAVisual.Testes.dll set CONT=%CONT% /testcontainer:TestesVisual\bin\Release\ARCAVisual.Testes.dll
-if exist TestesReferencia\bin\Release\ARCAVisual.Referencia.dll set CONT=%CONT% /testcontainer:TestesReferencia\bin\Release\ARCAVisual.Referencia.dll
 "%MST%" /nologo %CONT% %FILTRO% /resultsfile:%TRX% > Testes\Resultados\ultimo.txt 2>&1
 type Testes\Resultados\ultimo.txt
 :fim

@@ -89,5 +89,58 @@ namespace ARCA.Identificar.Testes
             // Ao abrir, a conferência começa numa thread; fechar a interrompe (nada é gravado).
             Abrir(() => new JanelaConferenciaAlbum(Arquivos(IBRAHIM, 13)));
         }
+
+        [TestMethod, TestCategory("Integracao")]
+        public void Ripar_AbreSemComecar()
+        {
+            // Sem começar o rip: só o layout. A pasta de entrada nem é criada.
+            string strPasta = Apoio.PastaNova();
+            try
+            {
+                Abrir(() => new JanelaRipar('E', strPasta, Apoio.ACERVO, false));
+                Assert.AreEqual(0, Directory.GetDirectories(strPasta).Length, "a janela criou pasta sem começar");
+            }
+            finally { Apoio.Apagar(strPasta); }
+        }
+
+        [TestMethod, TestCategory("Integracao")]
+        public void Ripar_ReabreCopiaFeita_PeloRelatorio()
+        {
+            // Uma pasta de entrada como a cópia deixa depois do Aplicar: relatório e índice, sem imagem nem WMA.
+            string strPasta = Apoio.PastaNova();
+            try
+            {
+                TRelatorioExtracao r = new TRelatorioExtracao { strDrive = "ASUS DRW-24F1MT", intOffsetAplicado = 6, strOrigemOffset = "tabela do AccurateRip", strAccurateRip = "na base" };
+                for (int i = 1; i <= 3; i++)
+                {
+                    TVerificacaoFaixa v = r.Verificacao(i);
+                    v.intConfiancaAr = i == 3 ? 0 : 5; v.intTotalAr = 5; v.strVersaoAr = "v2"; v.blnWmaIdentico = true;
+                    if (i == 3) v.intReleituraDiferentes = 0;
+                }
+                r.Gravar(strPasta);
+                File.WriteAllText(Path.Combine(strPasta, "AudioCD.cue"),
+                    "REM SESSION 1\r\nTITLE \"Disco\"\r\nPERFORMER \"Artista\"\r\nFILE \"AudioCD.bin\" BINARY\r\n" +
+                    "  TRACK 01 AUDIO\r\n    TITLE \"Um\"\r\n    INDEX 01 00:00:00\r\n" +
+                    "  TRACK 02 AUDIO\r\n    TITLE \"Dois\"\r\n    INDEX 01 02:00:00\r\n" +
+                    "  TRACK 03 AUDIO\r\n    TITLE \"Tres\"\r\n    INDEX 01 05:30:00\r\n" +
+                    "REM LEAD-OUT 09:00:00\r\nREM ARCA-LEADOUT-EXATO\r\n");
+                Apoio.NaUi(delegate
+                {
+                    JanelaRipar w = JanelaRipar.DeCopiaFeita(strPasta, Apoio.ACERVO);
+                    w.WindowStartupLocation = WindowStartupLocation.Manual; w.Left = -2000; w.Top = 0; w.ShowInTaskbar = false;
+                    w.Show();
+                    Apoio.Esperar(600);
+                    System.Windows.Controls.DataGrid g = (System.Windows.Controls.DataGrid)w.FindName("m_grade");
+                    List<TLinhaRip> lst = ((IEnumerable<TLinhaRip>)g.ItemsSource).ToList();
+                    w.Close();
+                    Assert.AreEqual(3, lst.Count, "faixas na grade");
+                    Assert.AreEqual("2:00", lst[0].strDuracao); Assert.AreEqual("3:30", lst[2].strDuracao, "a última faixa vai até o lead-out do índice");
+                    Assert.AreEqual("BIT-PERFECT", lst[0].strVeredito);
+                    Assert.AreEqual("lida duas vezes, idêntica", lst[2].strVeredito);
+                    Assert.AreEqual("idêntica", lst[2].strReleitura);
+                });
+            }
+            finally { Apoio.Apagar(strPasta); }
+        }
     }
 }

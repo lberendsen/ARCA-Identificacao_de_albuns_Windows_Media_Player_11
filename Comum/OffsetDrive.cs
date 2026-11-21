@@ -159,6 +159,13 @@ namespace ARCA.Modelo
             return dic;
         }
 
+        /// <summary>
+        /// Quem traz a tabela dos leitores quando esta máquina não sai para a internet (o ARCA
+        /// Identificar, no Windows do WMP: pede ao ARCA Central). Devolve os bytes do
+        /// DriveOffsets.bin, ou null. Sem ele, a tabela vem direto do accuraterip.com.
+        /// </summary>
+        public static Func<byte[]> objObterTabela;
+
         /// <summary>A tabela do AccurateRip: guardada, ou baixada na primeira vez (e a cada 6 meses).</summary>
         private static byte[] Tabela()
         {
@@ -169,7 +176,20 @@ namespace ARCA.Modelo
                     return File.ReadAllBytes(strArq);
             }
             catch { }
-            try
+            if (objObterTabela != null)
+            {
+                try
+                {
+                    byte[] arr = objObterTabela();
+                    if (arr != null && arr.Length >= TamanhoRegistro && arr.Length % TamanhoRegistro == 0)
+                    {
+                        try { File.WriteAllBytes(strArq, arr); } catch { }
+                        return arr;
+                    }
+                }
+                catch { }
+            }
+            else try
             {
                 HttpWebRequest req = (HttpWebRequest)WebRequest.Create(UrlTabela);
                 req.Proxy = NetworkConfiguration.CreateProxy();

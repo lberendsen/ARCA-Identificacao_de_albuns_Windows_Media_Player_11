@@ -7,7 +7,8 @@ Clique com o botão direito num álbum da biblioteca do WMP e escolha **Localiza
 - identifica o disco pelo **índice do CD** gravado nas faixas (MusicBrainz e GnuDB), pelo **nome** (Apple Music e Discogs), pelo **link** exato ou pelo **som** (AcoustID);
 - mostra as fontes **lado a lado**, com capa, faixas e durações comparadas às suas, para você escolher;
 - grava título, número, artistas, compositores, ano, gênero e capa em **MP3 e WMA**, com o áudio **conferido byte a byte**: o som nunca muda;
-- confere o rip no **AccurateRip**, digitaliza capa e encarte num scanner de rede, separa o "Álbum Desconhecido" em discos e organiza um artista pela discografia.
+- **copia o CD** no lugar do "Copiar do CD" do WMP: leitura direta do leitor, offset corrigido, conferência no **AccurateRip** e WMA Lossless **idêntico ao disco, amostra a amostra**, sem nada entrar no acervo antes da sua aprovação;
+- confere no AccurateRip o que já foi ripado, digitaliza capa e encarte num scanner de rede, separa o "Álbum Desconhecido" em discos e organiza um artista pela discografia.
 
 Tudo em janelas nativas do Vista, editáveis no designer do Visual Studio 2010.
 
@@ -20,7 +21,8 @@ Tudo em janelas nativas do Vista, editáveis no designer do Visual Studio 2010.
 O WMP 11 não oferece um jeito de trocar o "Localizar Informações sobre o Álbum". A ARCA faz isso com uma **ponte**, a `ARCAPonte.dll`: um plug-in de segundo plano do próprio WMP, em C++, que:
 
 1. **acrescenta o item "ARCA: identificar álbum"** ao *Enviar para* do menu de contexto. O WMP entrega as faixas selecionadas, e a ponte grava a lista e abre o `ARCAIdentificar.exe`;
-2. **desvia o comando 7312**, o "Localizar Informações sobre o Álbum" da biblioteca, para esse mesmo item. O id do item do *Enviar para* é dinâmico, e a ponte o lê no submenu quando o menu de contexto abre.
+2. **desvia o comando 7312**, o "Localizar Informações sobre o Álbum" da biblioteca, para esse mesmo item. O id do item do *Enviar para* é dinâmico, e a ponte o lê no submenu quando o menu de contexto abre. Vale só o item do mesmo menu: na vista de cópia do CD, que não tem *Enviar para*, o comando fica com o WMP;
+3. **põe "ARCA: copiar este CD (cópia segura)"** no menu do botão **Copiar do CD**, logo abaixo do item do WMP, e abre a cópia segura para o leitor daquele item.
 
 A ponte não toca na rede nem nos arquivos de música. Quem grava é o Identificar, e o WMP vê as mudanças sozinho, porque elas estão no próprio arquivo.
 
@@ -58,6 +60,25 @@ Um acervo não aceita um "quase". Toda gravação, de qualquer janela, passa pel
 - embutida em cada faixa, até 1000 px;
 - em `Folder.jpg` e `AlbumArtSmall.jpg`, ocultos, como o WMP faz;
 - a versão plena em `Artwork\capa.jpg`, junto das páginas do encarte.
+
+## Cópia segura do CD
+
+![Copiar o CD: 12 de 12 faixas conferem no AccurateRip, cada WMA idêntico ao disco](docs/telas/10-copiar-o-cd.png)
+
+**No WMP: guia Copiar do CD › setinha do botão Copiar do CD › ARCA: copiar este CD (cópia segura).** O rip do WMP lê o disco uma vez, não corrige o deslocamento do leitor e não diz se a leitura foi exata. A cópia da ARCA:
+
+1. **lê o disco direto do leitor** (SCSI pass-through, sem administrador), setor a setor, tentando de novo os setores difíceis. O que não se lê vira silêncio **e fica registrado**, nunca escondido;
+2. **confere no AccurateRip** cada faixa contra as assinaturas de quem ripou o mesmo CD. O que a base não confirmar é **lido de novo** e comparado setor a setor;
+3. **corrige o offset do leitor** (pela tabela do AccurateRip, confirmada pelo próprio disco) e corta as faixas;
+4. **codifica em WMA Lossless** pelo mesmo motor do WMP e **decodifica de volta**: o SHA-256 do áudio tem de ser o do trecho do disco;
+5. grava em cada faixa o índice do CD (`WM/MCDI`), o leitor e o veredito (`ARCA/Verification`).
+
+**Prudência.** As faixas vão para uma **pasta de entrada, fora do acervo** e das pastas que o WMP vigia. No fim, o Identificar abre sozinho e já procura o disco pelo índice do CD. O disco só entra no acervo (`Artista\Álbum\NN Título.wma`) quando você clica em **Aplicar às faixas**. Se alguma faixa não sair comprovada, a janela para e mostra qual, e a decisão é sua.
+
+**Exemplo real:** *Mitos do Jazz, vol. 12 — Thelonious Monk* (Abril Coleções).
+- Leitura de 720,8 MB em 3 minutos, nenhum setor perdido, offset +6.
+- **12 de 12 faixas conferem no AccurateRip**; 12 de 12 WMA idênticos ao disco.
+- Uma **segunda cópia independente** saiu idêntica à primeira, amostra a amostra, nas 12 faixas.
 
 ## As outras ferramentas
 
@@ -142,11 +163,11 @@ O Identificar foi feito para um PC de 2009 com **Windows Vista**, que **não sai
 
 | Pasta | O que é |
 |---|---|
-| `Identificar\` | o programa (WPF, .NET 4.0, x86): 12 janelas em XAML, o tema, o gravador, os casadores |
+| `Identificar\` | o programa (WPF, .NET 4.0, x86): 13 janelas em XAML, o tema, o gravador, os casadores, a cópia do CD |
 | `Ponte\` | a `ARCAPonte.dll` (C++, VC10), o plug-in que mora dentro do WMP |
 | `Central\` | o ARCA Central (.NET 4.8): servidor HTTP mínimo, MusicBrainz, GnuDB, AcoustID, discografia, scanner |
-| `Comum\` | os clientes de busca (Apple, Discogs, GnuDB), o AccurateRip, o editor de tags ASF e o modelo, compilados pelos dois lados |
-| `Testes\` | 52 testes MSTest (29 de unidade, 23 de integração) |
+| `Comum\` | os clientes de busca (Apple, Discogs, GnuDB), o AccurateRip, o editor de tags ASF, o modelo e o motor da cópia do CD (leitura SCSI, conferência, WMA Lossless) |
+| `Testes\` | 64 testes MSTest (35 de unidade, 29 de integração) |
 | `Bibliotecas\` | taglib-sharp 2.1 (LGPL), para as tags de MP3 |
 
 ## Requisitos e instalação
@@ -166,9 +187,11 @@ O Identificar foi feito para um PC de 2009 com **Windows Vista**, que **não sai
    - ao lado dele vão as chaves: `discogs.chave`, com o seu [token pessoal do Discogs](https://www.discogs.com/settings/developers), e `acoustid.chave`, com uma [chave de aplicação do AcoustID](https://acoustid.org/new-application);
    - também ao lado: o `fpcalc.exe` do [Chromaprint](https://acoustid.org/chromaprint), para a busca pelo som;
    - se os endereços forem outros que os padrão, um `central.ini` (veja `Central\central.ini.exemplo`).
-4. **Apontar o Identificar para o Central.** O endereço vai em `ArcaCentral`, no `ARCAIdentificar.exe.config`.
+4. **Apontar o Identificar para o Central.** O endereço vai em `ArcaCentral`, no `ARCAIdentificar.exe.config`. No mesmo arquivo ficam `PastaDeEntrada`, onde a cópia do CD espera a aprovação, e `Acervo`, para onde o Aplicar a leva.
 
-**Para usar:** na biblioteca do WMP, clique com o botão direito num álbum e escolha **Localizar Informações sobre o Álbum**, ou use **Enviar para › ARCA: identificar álbum**. Ao escolher várias pastas de uma vez, o Identificar abre direto na organização pela discografia.
+**Para copiar um CD:** no WMP, guia **Copiar do CD**, setinha do botão **Copiar do CD** › **ARCA: copiar este CD (cópia segura)**.
+
+**Para identificar:** na biblioteca do WMP, clique com o botão direito num álbum e escolha **Localizar Informações sobre o Álbum**, ou use **Enviar para › ARCA: identificar álbum**. Ao escolher várias pastas de uma vez, o Identificar abre direto na organização pela discografia.
 
 ## Testes
 
@@ -176,8 +199,8 @@ O Identificar foi feito para um PC de 2009 com **Windows Vista**, que **não sai
 
 | Categoria | O que confere |
 |---|---|
-| **Unidade** (29) | o hash do áudio (tags diferentes, ID3v1 empilhadas, um byte de áudio mudado); tags quebradas; o índice do CD (o Disc ID confere com o MusicBrainz, MCDI em texto e binário); o arquivo do AccurateRip; o casamento de faixas soltas e avulsas; a confiança; os nomes de faixa, pasta e álbum |
-| **Integração** (23) | gravação de MP3 e WMA numa cópia nova (move, renomeia, capa, ledger de teste, áudio intacto); a classe de mídia; o Central em todas as rotas; o AccurateRip de um disco real; as 12 janelas abrindo com faixas reais |
+| **Unidade** (35) | o corte de um disco sintético em WMA Lossless com offset 0, +6 e −30, conferido contra um SHA-256 que o próprio teste calcula; o CD-TEXT, inclusive com pacote corrompido; o hash do áudio (tags diferentes, ID3v1 empilhadas, um byte de áudio mudado); tags quebradas; o índice do CD (o Disc ID confere com o MusicBrainz, MCDI em texto e binário); o arquivo do AccurateRip; o casamento de faixas soltas e avulsas; a confiança; os nomes de faixa, pasta e álbum |
+| **Integração** (29) | o leitor de CD real (modelo, offset, índice, CD-TEXT, leitura repetida idêntica); uma segunda cópia do CD comparada com a do acervo (com `ARCA_TESTE_COPIA_ALBUM`); gravação de MP3 e WMA numa cópia nova (move, renomeia, capa, ledger de teste, áudio intacto); a classe de mídia; o Central em todas as rotas; o AccurateRip de um disco real; as 13 janelas abrindo com faixas reais |
 
 **Regras:**
 - nenhum teste escreve no acervo nem no ledger real;
